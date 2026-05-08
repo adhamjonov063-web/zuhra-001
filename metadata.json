@@ -1,0 +1,6 @@
+{
+  "name": "English Master Pro",
+  "description": "Professional English learning platform: Alphabet, 60+ Video lessons, 2,300+ Word Dictionary, and leveled courses (Junior to Master) with interactive tests.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["Education", "Interactive Quizzes", "Video Learning", "Comprehensive Dictionary"]
+}
