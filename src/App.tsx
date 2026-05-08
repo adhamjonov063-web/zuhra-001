@@ -20,8 +20,9 @@ import { GamesSection } from './components/GamesSection';
 import { TeamSection } from './components/TeamSection';
 import { Certificate } from './components/Certificate';
 import { CURRICULUM } from './data/curriculum';
+import { VIDEOS } from './data/videos';
 import { Level, Lesson, AppView } from './types';
-import { Sparkles, Trophy, BookOpen, Star, PlayCircle, BookMarked, Type, Gamepad2, Users } from 'lucide-react';
+import { Sparkles, Trophy, BookOpen, Star, PlayCircle, BookMarked, Type, Gamepad2, Users, ArrowRight } from 'lucide-react';
 
 const BACKGROUNDS = [
   'bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]',
@@ -91,7 +92,8 @@ export default function App() {
         userName={userName}
         currentView={currentView}
         currentLevel={currentLevel} 
-        onBackToLevels={handleBackToHome} 
+        onBackToLevels={handleBackToHome}
+        onSetView={setCurrentView}
       />
 
       <main className="pb-20">
@@ -182,7 +184,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="bg-gray-900 rounded-[3rem] p-12 text-center text-white overflow-hidden relative">
+              <div className="bg-gray-900 rounded-[3rem] p-12 text-center text-white overflow-hidden relative mb-12">
                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-transparent" />
                  <div className="relative z-10">
                     <h2 className="text-4xl font-black mb-4">Jamoaviy o'rganish</h2>
@@ -194,6 +196,36 @@ export default function App() {
                       <Users size={20} /> Jamoaga qo'shilish
                     </button>
                  </div>
+              </div>
+
+              <div className="mb-20">
+                <div className="flex items-center justify-between mb-8">
+                   <h3 className="text-2xl font-black text-gray-900 tracking-tight">Tanlangan Videolar</h3>
+                   <button 
+                     onClick={() => setCurrentView('Videos')}
+                     className="text-indigo-600 font-bold hover:underline flex items-center gap-2"
+                   >
+                     Hammasini ko'rish <ArrowRight size={16} />
+                   </button>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  {VIDEOS.slice(0, 4).map((video) => (
+                    <motion.div 
+                      key={video.id}
+                      whileHover={{ scale: 1.05 }}
+                      onClick={() => setCurrentView('Videos')}
+                      className="cursor-pointer group"
+                    >
+                      <div className="relative aspect-video rounded-2xl overflow-hidden mb-3">
+                        <img src={video.thumbnail} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                           <PlayCircle className="text-white opacity-80" size={32} />
+                        </div>
+                      </div>
+                      <h4 className="font-bold text-gray-900 text-sm line-clamp-1">{video.title}</h4>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             </motion.div>
           ) : currentView === 'Alphabet' ? (

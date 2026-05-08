@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Gamepad2, ArrowLeft, Trophy, Zap, Ghost } from 'lucide-react';
+import { Gamepad2, ArrowLeft, Trophy, Zap, Ghost, CheckCircle } from 'lucide-react';
 import { GameEntry, Level } from '../types';
 
 interface GamesSectionProps {
@@ -10,20 +10,18 @@ interface GamesSectionProps {
 
 export const GamesSection: React.FC<GamesSectionProps> = ({ onBack, level }) => {
   const [activeGame, setActiveGame] = useState<GameEntry | null>(null);
-  const [score, setScore] = useState(0);
   const [gameState, setGameState] = useState<'playing' | 'result'>('playing');
 
   const GAME_DATA: GameEntry[] = Array.from({ length: 30 }, (_, i) => ({
     id: `g-${i}`,
-    title: i === 0 ? "So'z Boyligi: Mevalar" : i === 1 ? "Grammatika: Vaqtlar" : `Inglizcha O'yin #${i + 1}`,
+    title: i === 0 ? "So'z Boyligi: Mevalar" : i === 1 ? "Grammatika: Vaqtlar" : i === 2 ? "Gap Tuzish: Salomlashish" : `Inglizcha O'yin #${i + 1}`,
     description: i % 2 === 0 ? "So'zlarni moslashtiring" : "Gaplarni tuzing",
-    previewImage: i === 0 ? "https://images.unsplash.com/photo-1619566636858-adf3ef46400c?w=400&h=225&fit=crop" : "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=225&fit=crop",
+    previewImage: i === 0 ? "https://images.unsplash.com/photo-1619566636858-adf3ef46400c?w=400&h=225&fit=crop" : i === 2 ? "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&h=225&fit=crop" : "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=225&fit=crop",
     type: i % 2 === 0 ? 'word-match' : 'sentence-build'
   }));
 
   const handleStartGame = (game: GameEntry) => {
     setActiveGame(game);
-    setScore(0);
     setGameState('playing');
   };
 
@@ -46,7 +44,7 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onBack, level }) => 
                  </div>
                  <h1 className="text-5xl font-black text-gray-900 tracking-tight">{level || 'Barcha'} O'yinlar</h1>
               </div>
-              <p className="text-xl text-gray-500">O'yin o'nyab ingliz tilini osonroq o'rganing (30+ o'yinlar)</p>
+              <p className="text-xl text-gray-500">O'yin o'ynab ingliz tilini osonroq o'rganing (30+ o'yinlar)</p>
             </div>
           </div>
 
@@ -81,16 +79,123 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onBack, level }) => 
             ))}
           </div>
         </>
-      ) : (
+      ) : activeGame.type === 'word-match' ? (
         <WordMatchGame 
           game={activeGame} 
-          onFinish={(finalScore) => {
-            setScore(finalScore);
-            setGameState('result');
-          }} 
+          onFinish={() => setGameState('result')} 
+        />
+      ) : (
+        <SentenceBuildGame 
+          game={activeGame}
+          onFinish={() => setGameState('result')}
         />
       )}
     </div>
+  );
+};
+
+const SentenceBuildGame = ({ game, onFinish }: { game: GameEntry, onFinish: () => void }) => {
+  const sentences = [
+    { uz: 'Mening ismim Adham', en: ['My', 'name', 'is', 'Adham'] },
+    { uz: 'Men ingliz tilini o\'rganyapman', en: ['I', 'am', 'learning', 'English'] },
+    { uz: 'Sizning ismingiz nima?', en: ['What', 'is', 'your', 'name?'] }
+  ];
+
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [selectedWords, setSelectedWords] = useState<string[]>([]);
+  const [availableWords, setAvailableWords] = useState<string[]>(() => [...sentences[0].en].sort(() => Math.random() - 0.5));
+  const [wrong, setWrong] = useState(false);
+  const [finished, setFinished] = useState(false);
+
+  const handleWordSelect = (word: string, idx: number) => {
+    const newSelected = [...selectedWords, word];
+    setSelectedWords(newSelected);
+    setAvailableWords(availableWords.filter((_, i) => i !== idx));
+
+    // Check if sentence is complete
+    if (newSelected.length === sentences[currentIdx].en.length) {
+      if (newSelected.join(' ') === sentences[currentIdx].en.join(' ')) {
+        // Correct!
+        if (currentIdx < sentences.length - 1) {
+          setTimeout(() => {
+            const nextIdx = currentIdx + 1;
+            setCurrentIdx(nextIdx);
+            setSelectedWords([]);
+            setAvailableWords([...sentences[nextIdx].en].sort(() => Math.random() - 0.5));
+          }, 800);
+        } else {
+          setFinished(true);
+        }
+      } else {
+        // Wrong sentence
+        setWrong(true);
+        setTimeout(() => {
+          setWrong(false);
+          setSelectedWords([]);
+          setAvailableWords([...sentences[currentIdx].en].sort(() => Math.random() - 0.5));
+        }, 1000);
+      }
+    }
+  };
+
+  if (finished) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="max-w-2xl mx-auto bg-white p-12 rounded-[3rem] text-center shadow-2xl"
+      >
+        <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle size={40} />
+        </div>
+        <h2 className="text-3xl font-black text-gray-900 mb-4">Tabriklaymiz!</h2>
+        <p className="text-gray-500 mb-8">Siz barcha gaplarni to'g'ri tuzdingiz.</p>
+        <button onClick={onFinish} className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold">Yopish</button>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-[3.5rem] border border-gray-100 shadow-2xl"
+    >
+      <div className="text-center mb-12">
+         <h2 className="text-3xl font-black text-gray-900 mb-2">{game.title}</h2>
+         <p className="text-gray-500">O'zbekcha gapni ingliz tiliga so'zlar orqali tarjima qiling</p>
+      </div>
+
+      <div className="bg-indigo-50 p-8 rounded-3xl mb-12 text-center">
+         <h4 className="text-xs font-black text-indigo-400 uppercase tracking-widest mb-2">Tarjima qiling</h4>
+         <p className="text-2xl font-bold text-indigo-900 italic">"{sentences[currentIdx].uz}"</p>
+      </div>
+
+      <div className={`min-h-[100px] p-6 border-b-4 ${wrong ? 'border-red-200 bg-red-50' : 'border-indigo-100 bg-gray-50'} rounded-2xl flex flex-wrap gap-3 mb-12 transition-colors`}>
+         {selectedWords.map((word, i) => (
+           <motion.div 
+             initial={{ scale: 0 }} 
+             animate={{ scale: 1 }} 
+             key={i} 
+             className="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold"
+           >
+             {word}
+           </motion.div>
+         ))}
+      </div>
+
+      <div className="flex flex-wrap justify-center gap-4">
+        {availableWords.map((word, i) => (
+          <button
+            key={i}
+            onClick={() => handleWordSelect(word, i)}
+            className="bg-white border-2 border-gray-100 px-6 py-3 rounded-2xl font-bold hover:border-indigo-500 hover:text-indigo-600 transition-all shadow-sm"
+          >
+            {word}
+          </button>
+        ))}
+      </div>
+    </motion.div>
   );
 };
 
