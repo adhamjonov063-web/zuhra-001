@@ -9,32 +9,40 @@ interface GamesSectionProps {
 }
 
 export const GamesSection: React.FC<GamesSectionProps> = ({ onBack, level }) => {
-  const [activeGame, setActiveGame] = useState<GameEntry | null>(null);
+  const [activeGame, setActiveGame] = useState<GameEntry & { level: Level }>({ id: '', title: '', description: '', previewImage: '', type: 'word-match', level: 'Junior' });
+  const [isGameRunning, setIsGameRunning] = useState(false);
   const [gameState, setGameState] = useState<'playing' | 'result'>('playing');
 
-  const GAME_DATA: GameEntry[] = Array.from({ length: 30 }, (_, i) => ({
-    id: `g-${i}`,
-    title: i === 0 ? "So'z Boyligi: Mevalar" : i === 1 ? "Grammatika: Vaqtlar" : i === 2 ? "Gap Tuzish: Salomlashish" : `Inglizcha O'yin #${i + 1}`,
-    description: i % 2 === 0 ? "So'zlarni moslashtiring" : "Gaplarni tuzing",
-    previewImage: i === 0 ? "https://images.unsplash.com/photo-1619566636858-adf3ef46400c?w=400&h=225&fit=crop" : i === 2 ? "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&h=225&fit=crop" : "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=225&fit=crop",
-    type: i % 2 === 0 ? 'word-match' : 'sentence-build'
-  }));
+  const levels: Level[] = ['Junior', 'Middle', 'Senior', 'Master'];
+  const GAME_DATA: (GameEntry & { level: Level })[] = levels.flatMap((lvl) => 
+    Array.from({ length: 8 }, (_, i) => ({
+      id: `g-${lvl}-${i}`,
+      title: i === 0 ? `${lvl} So'z Boyligi` : i === 1 ? `${lvl} Grammatika` : `${lvl} O'yin #${i + 1}`,
+      description: i % 2 === 0 ? "So'zlarni moslashtiring" : "Gaplarni tuzing",
+      previewImage: i === 0 ? "https://images.unsplash.com/photo-1619566636858-adf3ef46400c?w=400&h=225&fit=crop" : "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=225&fit=crop",
+      type: i % 2 === 0 ? 'word-match' : 'sentence-build',
+      level: lvl
+    }))
+  );
 
-  const handleStartGame = (game: GameEntry) => {
+  const filteredGames = level ? GAME_DATA.filter(g => g.level === level) : GAME_DATA;
+
+  const handleStartGame = (game: GameEntry & { level: Level }) => {
     setActiveGame(game);
+    setIsGameRunning(true);
     setGameState('playing');
   };
 
   return (
     <div className="max-w-7xl mx-auto py-12 px-6">
       <button 
-        onClick={activeGame ? () => setActiveGame(null) : onBack}
+        onClick={isGameRunning ? () => setIsGameRunning(false) : onBack}
         className="flex items-center gap-2 text-indigo-600 mb-12 font-medium hover:underline"
       >
         <ArrowLeft size={20} /> Orqaga
       </button>
 
-      {!activeGame ? (
+      {!isGameRunning ? (
         <>
           <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
             <div>
@@ -44,12 +52,12 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onBack, level }) => 
                  </div>
                  <h1 className="text-5xl font-black text-gray-900 tracking-tight">{level || 'Barcha'} O'yinlar</h1>
               </div>
-              <p className="text-xl text-gray-500">O'yin o'ynab ingliz tilini osonroq o'rganing (30+ o'yinlar)</p>
+              <p className="text-xl text-gray-500">Darajangizga mos o'yin o'ynab ingliz tilini organing (30+ o'yinlar)</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {GAME_DATA.map((game, idx) => (
+            {filteredGames.map((game, idx) => (
               <motion.div
                 key={game.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -64,7 +72,7 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onBack, level }) => 
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-6">
                     <div className="flex items-center gap-2 text-white/80 text-xs font-bold uppercase tracking-widest mb-1">
                       {game.type === 'word-match' ? <Zap size={14} className="text-amber-400" /> : <Ghost size={14} className="text-indigo-400" />}
-                      {game.type}
+                      <span className="bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded ml-auto text-[10px]">{game.level}</span>
                     </div>
                     <h3 className="text-white text-xl font-bold">{game.title}</h3>
                   </div>
@@ -94,16 +102,34 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onBack, level }) => 
   );
 };
 
-const SentenceBuildGame = ({ game, onFinish }: { game: GameEntry, onFinish: () => void }) => {
-  const sentences = [
-    { uz: 'Mening ismim Adham', en: ['My', 'name', 'is', 'Adham'] },
-    { uz: 'Men ingliz tilini o\'rganyapman', en: ['I', 'am', 'learning', 'English'] },
-    { uz: 'Sizning ismingiz nima?', en: ['What', 'is', 'your', 'name?'] }
-  ];
+const SentenceBuildGame = ({ game, onFinish }: { game: GameEntry & { level: Level }, onFinish: () => void }) => {
+  const sentencesByLevel: Record<Level, { uz: string; en: string[] }[]> = {
+    Junior: [
+      { uz: 'Mening ismim Adham', en: ['My', 'name', 'is', 'Adham'] },
+      { uz: 'Men maktabga boraman', en: ['I', 'go', 'to', 'school'] },
+      { uz: 'U yaxshi qiz', en: ['She', 'is', 'a', 'good', 'girl'] }
+    ],
+    Middle: [
+      { uz: 'Men darslarimni tugatdim', en: ['I', 'have', 'finished', 'my', 'lessons'] },
+      { uz: 'Kitob aka-ukam tomonidan yozilgan', en: ['The', 'book', 'was', 'written', 'by', 'my', 'brother'] },
+      { uz: 'Ular hozir kino ko\'rishmoqda', en: ['They', 'are', 'watching', 'a', 'movie', 'now'] }
+    ],
+    Senior: [
+      { uz: 'Agar ko\'proq oqiganimda, hozir muvaffaqiyatli bo\'lardim', en: ['If', 'I', 'had', 'studied', 'harder,', 'I', 'would', 'be', 'successful', 'now'] },
+      { uz: 'Bu bino o\'tgan asrda qurilgan bo\'lishi kerak', en: ['This', 'building', 'must', 'have', 'been', 'built', 'last', 'century'] },
+      { uz: 'U kelishi bilan biz ovqatlanishni boshlaymiz', en: ['As', 'soon', 'as', 'he', 'arrives,', 'we', 'will', 'start', 'eating'] }
+    ],
+    Master: [
+      { uz: 'Hech qachon bunday go\'zal quyosh botishini ko\'rmaganman', en: ['Never', 'have', 'I', 'seen', 'such', 'a', 'beautiful', 'sunset'] },
+      { uz: 'U shunchalik aqlliki, hamma narsani tushunadi', en: ['So', 'intelligent', 'is', 'he', 'that', 'he', 'understands', 'everything'] },
+      { uz: 'Kamdan-kam hollarda u o\'z uyiga tashrif buyuradi', en: ['Seldom', 'does', 'he', 'visit', 'his', 'hometown'] }
+    ]
+  };
 
+  const currentLevelSentences = sentencesByLevel[game.level];
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
-  const [availableWords, setAvailableWords] = useState<string[]>(() => [...sentences[0].en].sort(() => Math.random() - 0.5));
+  const [availableWords, setAvailableWords] = useState<string[]>(() => [...currentLevelSentences[0].en].sort(() => Math.random() - 0.5));
   const [wrong, setWrong] = useState(false);
   const [finished, setFinished] = useState(false);
 
@@ -112,27 +138,24 @@ const SentenceBuildGame = ({ game, onFinish }: { game: GameEntry, onFinish: () =
     setSelectedWords(newSelected);
     setAvailableWords(availableWords.filter((_, i) => i !== idx));
 
-    // Check if sentence is complete
-    if (newSelected.length === sentences[currentIdx].en.length) {
-      if (newSelected.join(' ') === sentences[currentIdx].en.join(' ')) {
-        // Correct!
-        if (currentIdx < sentences.length - 1) {
+    if (newSelected.length === currentLevelSentences[currentIdx].en.length) {
+      if (newSelected.join(' ') === currentLevelSentences[currentIdx].en.join(' ')) {
+        if (currentIdx < currentLevelSentences.length - 1) {
           setTimeout(() => {
             const nextIdx = currentIdx + 1;
             setCurrentIdx(nextIdx);
             setSelectedWords([]);
-            setAvailableWords([...sentences[nextIdx].en].sort(() => Math.random() - 0.5));
+            setAvailableWords([...currentLevelSentences[nextIdx].en].sort(() => Math.random() - 0.5));
           }, 800);
         } else {
           setFinished(true);
         }
       } else {
-        // Wrong sentence
         setWrong(true);
         setTimeout(() => {
           setWrong(false);
           setSelectedWords([]);
-          setAvailableWords([...sentences[currentIdx].en].sort(() => Math.random() - 0.5));
+          setAvailableWords([...currentLevelSentences[currentIdx].en].sort(() => Math.random() - 0.5));
         }, 1000);
       }
     }
@@ -162,13 +185,16 @@ const SentenceBuildGame = ({ game, onFinish }: { game: GameEntry, onFinish: () =
       className="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-[3.5rem] border border-gray-100 shadow-2xl"
     >
       <div className="text-center mb-12">
+         <div className="inline-flex gap-2 mb-4">
+           <span className="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-black rounded-full uppercase tracking-widest">{game.level} LEVEL</span>
+         </div>
          <h2 className="text-3xl font-black text-gray-900 mb-2">{game.title}</h2>
-         <p className="text-gray-500">O'zbekcha gapni ingliz tiliga so'zlar orqali tarjima qiling</p>
+         <p className="text-gray-500">O'zbekcha gapni ingliz tiliga so'zlar orqali tarjima qiling (Difficulty: {game.level})</p>
       </div>
 
       <div className="bg-indigo-50 p-8 rounded-3xl mb-12 text-center">
          <h4 className="text-xs font-black text-indigo-400 uppercase tracking-widest mb-2">Tarjima qiling</h4>
-         <p className="text-2xl font-bold text-indigo-900 italic">"{sentences[currentIdx].uz}"</p>
+         <p className="text-2xl font-bold text-indigo-900 italic">"{currentLevelSentences[currentIdx].uz}"</p>
       </div>
 
       <div className={`min-h-[100px] p-6 border-b-4 ${wrong ? 'border-red-200 bg-red-50' : 'border-indigo-100 bg-gray-50'} rounded-2xl flex flex-wrap gap-3 mb-12 transition-colors`}>
@@ -199,22 +225,24 @@ const SentenceBuildGame = ({ game, onFinish }: { game: GameEntry, onFinish: () =
   );
 };
 
-const WordMatchGame = ({ game, onFinish }: { game: GameEntry, onFinish: (s: number) => void }) => {
-  const allWords = [
-    { en: 'Apple', uz: 'Olma' },
-    { en: 'Book', uz: 'Kitob' },
-    { en: 'Sky', uz: 'Osmon' },
-    { en: 'Car', uz: 'Mashina' },
-    { en: 'Friend', uz: 'Do\'st' },
-    { en: 'Water', uz: 'Suv' },
-    { en: 'School', uz: 'Maktab' },
-    { en: 'Tree', uz: 'Daraxt' },
-    { en: 'Sun', uz: 'Quyosh' },
-    { en: 'Moon', uz: 'Oy' }
-  ];
+const WordMatchGame = ({ game, onFinish }: { game: GameEntry & { level: Level }, onFinish: () => void }) => {
+  const wordsByLevel: Record<Level, { en: string; uz: string }[]> = {
+    Junior: [
+      { en: 'Apple', uz: 'Olma' }, { en: 'Book', uz: 'Kitob' }, { en: 'Car', uz: 'Mashina' }, { en: 'House', uz: 'Uy' }, { en: 'Friend', uz: 'Do\'st' }
+    ],
+    Middle: [
+      { en: 'Acquire', uz: 'Egalallamoq' }, { en: 'Beneficial', uz: 'Foydali' }, { en: 'Capable', uz: 'Qobiliyatli' }, { en: 'Efficient', uz: 'Samarali' }, { en: 'Hazard', uz: 'Xavf' }
+    ],
+    Senior: [
+      { en: 'Abundant', uz: 'Mo\'l-ko\'l' }, { en: 'Fascinating', uz: 'Ma\'ftunkor' }, { en: 'Genuine', uz: 'Haqiqiy' }, { en: 'Inevitable', uz: 'Muqarrar' }, { en: 'Hazard', uz: 'Xavf' }
+    ],
+    Master: [
+      { en: 'Deficit', uz: 'Kamomad' }, { en: 'Inversion', uz: 'Inversiya' }, { en: 'Emphasis', uz: 'Urg\'u' }, { en: 'Ambiguous', uz: 'Noaniq' }, { en: 'Seldom', uz: 'Kamdan-kam' }
+    ]
+  };
 
-  // Select 5 random words for this session
-  const [words] = useState(() => [...allWords].sort(() => Math.random() - 0.5).slice(0, 5));
+  const gameWords = wordsByLevel[game.level];
+  const [words] = useState(() => [...gameWords].sort(() => Math.random() - 0.5));
   const [shuffledUz] = useState(() => [...words].sort(() => Math.random() - 0.5));
 
   const [selectedEn, setSelectedEn] = useState<string | null>(null);
@@ -243,7 +271,7 @@ const WordMatchGame = ({ game, onFinish }: { game: GameEntry, onFinish: (s: numb
       setSelectedEn(null);
       setSelectedUz(null);
       if (newMatches.length === words.length) {
-        setTimeout(() => onFinish(newMatches.length * 20), 500);
+        setTimeout(() => onFinish(), 500);
       }
     } else {
       setWrong(true);
@@ -262,11 +290,11 @@ const WordMatchGame = ({ game, onFinish }: { game: GameEntry, onFinish: (s: numb
       className="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-[3rem] border border-gray-100 shadow-2xl"
     >
       <div className="text-center mb-12">
-        <div className="inline-flex items-center gap-2 px-4 py-1 bg-pink-100 text-pink-700 rounded-full text-xs font-black uppercase tracking-widest mb-4">
-          Interactive Training
+        <div className="inline-flex gap-2 mb-4">
+           <span className="px-3 py-1 bg-pink-100 text-pink-700 text-xs font-black rounded-full uppercase tracking-widest">{game.level} LEVEL</span>
         </div>
         <h2 className="text-3xl font-black text-gray-900 mb-2">{game.title}</h2>
-        <p className="text-gray-500">Ingliz tilidagi so'zlarni ularning o'zbekcha tarjimasi bilan moslashtiring</p>
+        <p className="text-gray-500">So'zlarni mos tarjimasi bilan bog'lang (Difficulty: {game.level})</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
