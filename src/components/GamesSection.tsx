@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Gamepad2, ArrowLeft, Trophy, Zap, Ghost, CheckCircle } from 'lucide-react';
+import { Gamepad2, ArrowLeft, Trophy, Zap, Ghost, CheckCircle, Car } from 'lucide-react';
 import { GameEntry, Level } from '../types';
+import { CarGame } from './CarGame';
 
 interface GamesSectionProps {
   onBack: () => void;
@@ -17,10 +18,10 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onBack, level }) => 
   const GAME_DATA: (GameEntry & { level: Level })[] = levels.flatMap((lvl) => 
     Array.from({ length: 8 }, (_, i) => ({
       id: `g-${lvl}-${i}`,
-      title: i === 0 ? `${lvl} So'z Boyligi` : i === 1 ? `${lvl} Grammatika` : `${lvl} O'yin #${i + 1}`,
-      description: i % 2 === 0 ? "So'zlarni moslashtiring" : "Gaplarni tuzing",
-      previewImage: i === 0 ? "https://images.unsplash.com/photo-1619566636858-adf3ef46400c?w=400&h=225&fit=crop" : "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=225&fit=crop",
-      type: i % 2 === 0 ? 'word-match' : 'sentence-build',
+      title: i === 0 ? `${lvl} So'z Boyligi` : i === 1 ? `${lvl} Grammatika` : i === 2 ? `${lvl} Trafik (Moshina) O'yini` : `${lvl} O'yin #${i + 1}`,
+      description: i === 2 ? "Qizil chiroqda to'xtab, tarjimani yozing!" : (i % 2 === 0 ? "So'zlarni moslashtiring" : "Gaplarni tuzing"),
+      previewImage: i === 0 ? "https://images.unsplash.com/photo-1619566636858-adf3ef46400c?w=400&h=225&fit=crop" : i === 2 ? "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=400&h=225&fit=crop" : "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=225&fit=crop",
+      type: i === 2 ? 'car-game' : (i % 2 === 0 ? 'word-match' : 'sentence-build'),
       level: lvl
     }))
   );
@@ -71,7 +72,7 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onBack, level }) => 
                   <img src={game.previewImage} alt={game.title} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-6">
                     <div className="flex items-center gap-2 text-white/80 text-xs font-bold uppercase tracking-widest mb-1">
-                      {game.type === 'word-match' ? <Zap size={14} className="text-amber-400" /> : <Ghost size={14} className="text-indigo-400" />}
+                      {game.type === 'word-match' ? <Zap size={14} className="text-amber-400" /> : game.type === 'car-game' ? <Car size={14} className="text-cyan-400" /> : <Ghost size={14} className="text-indigo-400" />}
                       <span className="bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded ml-auto text-[10px]">{game.level}</span>
                     </div>
                     <h3 className="text-white text-xl font-bold">{game.title}</h3>
@@ -91,6 +92,11 @@ export const GamesSection: React.FC<GamesSectionProps> = ({ onBack, level }) => 
         <WordMatchGame 
           game={activeGame} 
           onFinish={() => setGameState('result')} 
+        />
+      ) : activeGame.type === 'car-game' ? (
+        <CarGame
+          game={activeGame}
+          onFinish={() => setGameState('result')}
         />
       ) : (
         <SentenceBuildGame 

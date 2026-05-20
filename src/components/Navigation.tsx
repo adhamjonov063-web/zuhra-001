@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { BookOpen, GraduationCap, Play, CheckCircle, Gamepad2 } from 'lucide-react';
+import { BookOpen, GraduationCap, Play, CheckCircle, Gamepad2, History } from 'lucide-react';
 import { Level, AppView } from '../types';
 
 interface NavbarProps {
@@ -43,6 +43,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentLevel, currentView, userN
              onClick={() => onSetView('Games')}
              icon={<Gamepad2 size={18} />}
              label="O'yinlar"
+           />
+           <NavButton 
+             active={currentView === 'History'} 
+             onClick={() => onSetView('History')}
+             icon={<History size={18} />}
+             label="Tarix"
            />
         </div>
 

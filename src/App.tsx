@@ -19,10 +19,11 @@ import { DictionarySection } from './components/DictionarySection';
 import { GamesSection } from './components/GamesSection';
 import { TeamSection } from './components/TeamSection';
 import { Certificate } from './components/Certificate';
+import { HistorySection } from './components/HistorySection';
 import { CURRICULUM } from './data/curriculum';
 import { VIDEOS } from './data/videos';
 import { Level, Lesson, AppView } from './types';
-import { Sparkles, Trophy, BookOpen, Star, PlayCircle, BookMarked, Type, Gamepad2, Users, ArrowRight } from 'lucide-react';
+import { Sparkles, Trophy, BookOpen, Star, PlayCircle, BookMarked, Type, Gamepad2, Users, ArrowRight, History } from 'lucide-react';
 
 const BACKGROUNDS = [
   'bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]',
@@ -238,6 +239,8 @@ export default function App() {
             <GamesSection key="games" onBack={handleBackToHome} level={currentLevel} />
           ) : currentView === 'Team' ? (
             <TeamSection key="team" onBack={handleBackToHome} userName={userName} />
+          ) : currentView === 'History' ? (
+            <HistorySection key="history" onBack={handleBackToHome} activeUser={userName} progress={progress} />
           ) : currentView === 'Certificate' ? (
             <Certificate key="certificate" userName={userName} onBack={handleBackToHome} />
           ) : !currentLesson ? (

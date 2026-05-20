@@ -48,14 +48,14 @@ export interface CourseLevel {
   lessons: Lesson[];
 }
 
-export type AppView = 'Home' | 'Alphabet' | 'Videos' | 'Dictionary' | 'Course' | 'Games' | 'Team' | 'Certificate';
+export type AppView = 'Home' | 'Alphabet' | 'Videos' | 'Dictionary' | 'Course' | 'Games' | 'Team' | 'History' | 'Certificate';
 
 export interface GameEntry {
   id: string;
   title: string;
   description: string;
   previewImage: string;
-  type: 'word-match' | 'fill-blank' | 'sentence-build';
+  type: 'word-match' | 'fill-blank' | 'sentence-build' | 'car-game';
 }
 
 export type AppState = {
